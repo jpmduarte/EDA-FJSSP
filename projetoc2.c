@@ -6,25 +6,22 @@
 typedef struct operacao
 {
     int num;
-    int nummaqavail;
     int maq;
     int time;
-    struct operacao *next;
+    struct operacao* next;
 } node;
 
-node *head = NULL;
-node *tail = NULL;
 
-void *removenode(int pos)
+void removenode(int pos, node* head)
 {
-    FILE *infile;
-    node *temp = head; // Creating a temporary variable pointing to head
+    FILE* fp;
+    node* temp = head; 
     int i;
     if (pos == 0)
     {
-        head = head->next; // Advancing the head pointer
+        head = head->next; 
         temp->next = NULL;
-        free(temp); // Node is deleted
+        free(temp); 
     }
     else
     {
@@ -32,87 +29,154 @@ void *removenode(int pos)
         {
             temp = temp->next;
         }
-        // Now temp pointer points to the previous node of the node to be deleted
-        node *del = temp->next; // del pointer points to the node to be deleted
+        
+        node* del = temp->next; 
         temp->next = temp->next->next;
         del->next = NULL;
-        free(del); // Node is deleted
+        free(del); 
     }
 }
 
-void *insertnode()
+void insertnode(node** head)
 {
-    node *newnode = malloc(sizeof(node));
-    node *tail = head;
+    node* newnode = (node*)malloc(sizeof(node));
     int num;
     int NumMaq;
     int numaux, i;
     int time;
-    FILE *infile;
-    infile = fopen("Operacao.txt", "a+");
+    FILE* fp;
+    fp = fopen("job.txt", "a+");
     system("cls");
     printf("Qual o numero da operacao?\n");
     scanf("%d", &num);
     newnode->num = num;
-    fprintf(infile, "Operacao %d: ", num);
-    newnode->nummaqavail = numaux;
+    fprintf(fp, "Operacao %d: ", num);
     printf("Qual o numero(s) da(s) maquina(s)?\n\ninsira um de cada vez no caso de multiplas maquinas\n");
     scanf("%d", &NumMaq);
-    fprintf(infile, "(%d) ", NumMaq);
+    fprintf(fp, "(%d) ", NumMaq);
     newnode->maq = NumMaq;
-    fprintf(infile, "\n             ");
+    fprintf(fp, "\n             ");
     printf("Qual e o tempo da(s) maquina(s)?\n");
     scanf("%d", &time);
     newnode->time = time;
-    fprintf(infile, "[%d] ", time);
-    fprintf(infile, "\n ");
-    newnode->next = NULL;
-    if (head == NULL) // Checking if List is empty
+    fprintf(fp, "[%d] ", time);
+    fprintf(fp, "\n ");
+    if (*head == NULL) 
     {
-        head = newnode;
-        tail = newnode;
+        *head = newnode;
     }
-    else // If not empty then...
+    else
     {
-        tail->next = newnode;
-        tail = newnode; // Updating the tail node with each insertion
+        node* lastNode = *head;
+
+      
+        while (lastNode->next != NULL)
+        {
+            lastNode = lastNode->next;
+        }
+
+        
+        lastNode->next = newnode;
     }
     system("cls");
 }
 
+
 void lerficheiro()
 {
-    char ler[150];
-    FILE *infile;
-    infile = fopen("Operacao.txt", "r");
-    if (sizeof(infile) == 0)
-    {
-        printf("\nficheiro vazio");
+    char aux[150];
+    FILE* fp;
+    fp = fopen("job.txt", "r");
+    if (fp == NULL) {
+        printf("\nFicheiro vazio\n");
     }
-    while (!feof(infile))
+    while (!feof(fp))
     {
-        fgets(ler, 150, infile);
-        puts(ler);
+        fgets(aux, 150, fp);
+        puts(aux);
     }
-    fclose(infile);
-
+    fclose(fp);
     printf("Any key to continue.");
     getchar();
     getchar();
 }
 
-void printlist()
+
+
+void printlist(node* head)
 {
-    int i = 0;
-    node *tmp = head;
-    int aux = tmp->nummaqavail;
-    while (tmp != NULL)
+    node* temp;    
+    temp = head;          
+    while (temp != NULL)
     {
-        printf("operacao %d\n", tmp->num);
-        printf("(%d)", tmp->maq);
-        printf("[%d]", tmp->time);
+        printf("operacao %d\n", temp->num);
+        printf("(%d)", temp->maq);
+        printf("[%d]", temp->time);
         printf("\n");
-        tmp = tmp->next;
+        temp = temp->next;
+    }
+    printf("\n");
+}
+
+int sizeoflist(node* node) {
+    int size = 0;
+
+    while (node != NULL) {
+        node = node->next;
+        size++;
+    }
+    return size;
+}
+
+void insertAfterNthNode(int n, node** head)
+{
+    int size = sizeoflist(*head);
+    int num;
+    int NumMaq;
+    int time;
+    node* newnode = (node*)malloc(sizeof(node));
+    FILE* fp;
+    fp = fopen("job.txt", "a");
+    system("cls");
+    printf("Qual o numero da operacao?\n");
+    scanf("%d", &num);
+    newnode->num = num;
+    fprintf(fp, "Operacao %d: ", num);
+    printf("Qual o numero(s) da(s) maquina(s)?\n");
+    scanf("%d", &NumMaq);
+    fprintf(fp, "(%d) ", NumMaq);
+    newnode->maq = NumMaq;
+    fprintf(fp, "\n             ");
+    printf("Qual e o tempo da(s) maquina(s)?\n");
+    scanf("%d", &time);
+    newnode->time = time;
+    fprintf(fp, "[%d] ", time);
+    fprintf(fp, "\n ");
+    newnode->next = NULL;
+
+  
+    if (n < 0 || n > size)
+        printf("Erro\n");
+
+    
+    else if (n == 0) {
+        newnode->next = *head;
+        *head = newnode;
+    }
+
+    else
+    {
+        node* temp = *head;
+
+   
+        while (--n)
+            temp = temp->next;
+
+        
+        newnode->next = temp->next;
+       
+        temp->next = newnode;
+        
     }
 }
 
@@ -135,6 +199,7 @@ void menu()
 
 int main()
 {
+    node* head = NULL;
     int choice = 1;
     int x;
     do
@@ -144,23 +209,38 @@ int main()
         switch (choice)
         {
         case 1:
-            printlist();
+            printlist(head);
+            getchar();
+            getchar();
             break;
         case 2:
+
             lerficheiro();
+            getchar();
+            getchar();
             break;
-        case 3:
+        case 3: remove("job.txt");
+            getchar();
+            getchar();
             break;
         case 4:
-            insertnode();
+            insertnode(&head);
+            getchar();
+            getchar();
             break;
         case 5:
             printf("\nQue operacao deseja remover?\n");
             scanf("%d", &x);
-            removenode(x);
+            x = x + 1;
+            removenode(x, head);
+            getchar();
+            getchar();
             break;
-        case 6:
-
+        case 6:printf("\nQue operacao deseja alterar\n");
+            scanf("%d", &x);
+            x = x - 1;
+            removenode(x, head);
+            insertAfterNthNode(x, &head);
             break;
         default:
             break;
